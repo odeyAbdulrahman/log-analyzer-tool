@@ -1,0 +1,10 @@
+First, install the dependencies using pnpm:
+pnpm install
+
+Then, you can run the development server:
+pnpm dev
+
+Other available commands:
+pnpm build - Creates a production build
+pnpm start - Runs the production build
+pnpm lint - Runs the linter to check for code issues
