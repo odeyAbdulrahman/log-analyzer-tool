@@ -43,6 +43,9 @@ jobs:
         run: pnpm build
 
       # Lint the code
+      - name: Configure ESLint
+        run: npx eslint --init
+
       - name: Run linter
         run: pnpm lint
 
