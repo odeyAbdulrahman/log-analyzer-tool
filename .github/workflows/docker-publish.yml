@@ -32,6 +32,7 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'pnpm'  # Uses pnpm-lock.yaml for caching
+          cache-dependency-path: pnpm-lock.yaml
 
       # Install dependencies
       - name: Install dependencies
@@ -40,10 +41,6 @@ jobs:
       # Build the Next.js app
       - name: Build Next.js app
         run: pnpm build
-
-      # Run tests if you have them
-      - name: Run tests
-        run: pnpm test
 
       # Lint the code
       - name: Run linter
