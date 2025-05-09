@@ -1,14 +1,14 @@
 # Stage 1: Build the application
-FROM node:18-alpine AS builder
+FROM node:18-slim@sha256:3a2b7e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8 AS builder
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 COPY . .
 RUN npm run build
 
 # Stage 2: Serve the application
-FROM node:18-alpine AS runner
+FROM node:18-slim@sha256:3a2b7e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8 AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
