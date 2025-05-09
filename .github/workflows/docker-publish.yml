@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-          cache: 'npm'
+          cache: 'npm'  # Remove this if you don't have a lock file
 
       # Install dependencies
       - name: Install dependencies
