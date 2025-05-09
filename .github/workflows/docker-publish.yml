@@ -42,10 +42,6 @@ jobs:
       - name: Build Next.js app
         run: pnpm build
 
-      # Run tests if you have them
-      - name: Run tests
-        run: pnpm run start
-
       # Lint the code
       - name: Run linter
         run: pnpm lint
