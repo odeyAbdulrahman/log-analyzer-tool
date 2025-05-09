@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:18-slim@sha256:3a2b7e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8 AS builder
+FROM node:18-slim AS builder
 
 WORKDIR /app
 COPY package*.json ./
@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve the application
-FROM node:18-slim@sha256:3a2b7e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8d8e8c2b5b9c8e8 AS runner
+FROM node:18-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
