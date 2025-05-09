@@ -13,7 +13,7 @@ RUN echo "#!/bin/sh\n\
     
 WORKDIR /app
 COPY package*.json ./
-COPY package-lock.json ./ 
+# Removed redundant COPY package-lock.json ./ as package*.json already includes it
 RUN npm ci --omit=dev
 COPY . .
 RUN npm run build
