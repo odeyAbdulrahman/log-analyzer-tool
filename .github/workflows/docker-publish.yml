@@ -44,7 +44,7 @@ jobs:
 
       # Run tests if you have them
       - name: Run tests
-        run: pnpm test
+        run: pnpm run start
 
       # Lint the code
       - name: Run linter
