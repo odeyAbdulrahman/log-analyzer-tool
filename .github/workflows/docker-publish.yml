@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'pnpm'  # Uses pnpm-lock.yaml for caching
-          cache-dependency-path: pnpm-lock.yaml
+          cache-dependency-path: .github/workflows/pnpm-lock.yaml
 
       # Install dependencies
       - name: Install dependencies
