@@ -26,6 +26,23 @@ export function SearchFilters({ onSearch }: SearchFiltersProps) {
   const [exceptionType, setExceptionType] = useState("")
   const [sourceFile, setSourceFile] = useState("")
   const [expandedAdvanced, setExpandedAdvanced] = useState(false)
+  const [logFiles, setLogFiles] = useState<Array<{ name: string }>>([]);
+  
+  const fetchLogFiles = async () => {
+    try {
+      const response = await fetch("/api/logs/files");
+      const data = await response.json();
+      if (data.success) {
+        setLogFiles(data.files);
+      }
+    } catch (error) {
+      console.error("Error fetching log files:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogFiles();
+  }, []);
 
   // Set default date range (last 7 days)
   useEffect(() => {
@@ -63,6 +80,7 @@ export function SearchFilters({ onSearch }: SearchFiltersProps) {
     setSearchText("")
     setExceptionType("")
     setSourceFile("")
+    fetchLogFiles() // Refresh the file list
   }
 
   return (
@@ -164,15 +182,21 @@ export function SearchFilters({ onSearch }: SearchFiltersProps) {
 
                 <div>
                   <Label htmlFor="sourceFile" className="text-sm font-medium">
-                    Source File
+                    Log File
                   </Label>
-                  <Input
-                    id="sourceFile"
-                    placeholder="File.cs"
-                    value={sourceFile}
-                    onChange={(e) => setSourceFile(e.target.value)}
-                    className="mt-1.5"
-                  />
+                  <Select value={sourceFile} onValueChange={setSourceFile}>
+                    <SelectTrigger id="sourceFile" className="mt-1.5">
+                      <SelectValue placeholder="All Files" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="*">All Files</SelectItem>
+                      {logFiles.map((file) => (
+                        <SelectItem key={file.name} value={file.name}>
+                          {file.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </AccordionContent>
             </AccordionItem>

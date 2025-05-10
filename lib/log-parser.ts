@@ -320,22 +320,54 @@ export function searchLogs(
 export function getLogStats(logDirectory: string, fromDate?: string, toDate?: string): LogStats {
   try {
     const criteria: LogSearchCriteria = { fromDate, toDate }
-    const { results } = searchLogs(logDirectory, criteria)
-    
-    // Flatten all entries from all groups
-    const allEntries = Object.values(results).flat()
+    // Get all results without pagination
+    const logFiles = getRelevantLogFiles(logDirectory, criteria)
+    let allEntries: LogEntry[] = []
+
+    for (const file of logFiles) {
+      const entries = parseLogFile(file)
+      entries.forEach(entry => {
+        entry.sourceFile = path.basename(file)
+      })
+      allEntries = [...allEntries, ...entries]
+    }
+
+    // Filter entries based on date criteria and level
+    const filtered = allEntries.filter((entry) => {
+      const entryDate = new Date(entry.timestamp)
+      
+      if (criteria.fromDate) {
+        const fromDate = new Date(criteria.fromDate)
+        fromDate.setHours(0, 0, 0, 0)
+        if (entryDate < fromDate) return false
+      }
+      
+      if (criteria.toDate) {
+        const toDate = new Date(criteria.toDate)
+        toDate.setHours(23, 59, 59, 999)
+        if (entryDate > toDate) return false
+      }
+
+      // In searchLogs function
+      if (criteria.level && entry.level !== criteria.level) return false
+
+      // In getLogStats function
+      if (criteria.level && entry.level !== criteria.level) return false
+
+      return true
+    })
 
     const stats: LogStats = {
-      totalEntries: allEntries.length,
-      errorCount: allEntries.filter((log) => log.level === "ERR").length,
-      warningCount: allEntries.filter((log) => log.level === "WRN").length,
-      infoCount: allEntries.filter((log) => log.level === "INF").length,
+      totalEntries: filtered.length,
+      errorCount: filtered.filter((log) => log.level === "ERR").length,
+      warningCount: filtered.filter((log) => log.level === "WRN").length,
+      infoCount: filtered.filter((log) => log.level === "INF").length,
       commonExceptions: {},
       commonSources: {},
     }
 
     // Calculate common exceptions
-    allEntries
+    filtered
       .filter((log) => log.exceptionType)
       .forEach((log) => {
         const exceptionType = log.exceptionType as string
@@ -343,7 +375,7 @@ export function getLogStats(logDirectory: string, fromDate?: string, toDate?: st
       })
 
     // Calculate common source files
-    allEntries
+    filtered
       .filter((log) => log.sourceFile)
       .forEach((log) => {
         const sourceFile = log.sourceFile as string
@@ -354,13 +386,13 @@ export function getLogStats(logDirectory: string, fromDate?: string, toDate?: st
     stats.commonExceptions = Object.fromEntries(
       Object.entries(stats.commonExceptions)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 5),
+        .slice(0, 5)
     )
 
     stats.commonSources = Object.fromEntries(
       Object.entries(stats.commonSources)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 5),
+        .slice(0, 5)
     )
 
     return stats
