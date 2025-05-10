@@ -31,23 +31,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'pnpm'  # Uses pnpm-lock.yaml for caching
+          cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
       # Install dependencies
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       # Build the Next.js app
       - name: Build Next.js app
         run: pnpm build
-
-      # Lint the code
-      - name: Configure ESLint
-        run: npx eslint --init
-
-      #- name: Run linter
-      #  run: pnpm lint || echo "Linting issues detected, but continuing..."
 
       # Docker Setup
       - name: Set up Docker Buildx
@@ -65,5 +58,7 @@ jobs:
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ env.NEXT_IMAGE_NAME }}
+          tags: ${{ env.NEXT_IMAGE_NAME }}:latest
           platforms: linux/amd64
+          build-args: |
+            NEXT_PUBLIC_APP_VERSION=1.0.0
