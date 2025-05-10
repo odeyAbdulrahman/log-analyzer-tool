@@ -1,4 +1,4 @@
-name: Build, Test, and Deploy Next.js with Docker
+name: Build and Deploy Next.js with Docker
 
 on:
   push:
@@ -20,34 +20,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Setup pnpm
+      # Setup pnpm (needed for lockfile validation)
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          
-      # Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      
+      # Cache pnpm modules (optional, speeds up Docker build)
+      - name: Cache pnpm modules
+        uses: actions/cache@v3
+        id: pnpm-cache
         with:
-          node-version: '20.x'
-          cache: 'pnpm'  # Uses pnpm-lock.yaml for caching
-          cache-dependency-path: pnpm-lock.yaml
-
-      # Install dependencies
-      - name: Install dependencies
-        run: pnpm install
-
-      # Build the Next.js app
-      - name: Build Next.js app
-        run: pnpm build
-
-      # Lint the code
-      - name: Configure ESLint
-        run: npx eslint --init
-
-      #- name: Run linter
-      #  run: pnpm lint || echo "Linting issues detected, but continuing..."
+          path: |
+            ~/.pnpm-store
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       # Docker Setup
       - name: Set up Docker Buildx
@@ -59,11 +49,11 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # Build and push
+      # Build and push (Docker handles the build)
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ env.NEXT_IMAGE_NAME }}
-          platforms: linux/amd64
+          push: ${{ github.ref == 'refs/heads/main' && true || false }}
+          tags: ${{ env.NEXT_IMAGE_NAME }}:latest
+          platforms: linux/amd64,linux/arm64
