@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  NEXT_IMAGE_NAME: odey114/askme-nextjs
+  NEXT_IMAGE_NAME: odey114/log-analyzer-tool
   DOCKER_REGISTRY: odey114/
 
 jobs:
