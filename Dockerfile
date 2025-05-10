@@ -1,39 +1,37 @@
 # Stage 1: Build the application
-FROM node:latest AS builder
+FROM node:18.17.1 AS builder
 
-RUN echo "#!/bin/sh\n\
-    echo 'y' | sh -c 'debconf-set-selections <<< \"tzdata tzdata/Areas select Etc\"'\n\
-    echo 'y' | sh -c 'debconf-set-selections <<< \"tzdata tzdata/Zones/Etc select UTC\"'\n\
-    apt-get update && \
-    apt-get install -y tzdata && \
-    apt-get clean" > /tmp/script.sh && \
-    chmod +x /tmp/script.sh && \
-    /tmp/script.sh && \
-    rm /tmp/script.sh
-    
 WORKDIR /app
-COPY package*.json ./
-# Removed redundant COPY package-lock.json ./ as package*.json already includes it
-RUN npm ci --omit=dev
-COPY . .
-RUN npm run build
+COPY package.json package-lock.json /app/
 
-FROM node:latest AS runner
+# Install pnpm if needed
+RUN npm install -g pnpm
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+COPY . /app/
+RUN pnpm run build
+
+# Stage 2: Run the application
+FROM node:18.17.1 AS runner
+
 WORKDIR /app
 ENV NODE_ENV=production
-ENV NODE_ENV production
 
+# Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy only the necessary files from the builder stage
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
+# Set permissions for the non-root user
 USER nextjs
 
-ENV PORT=3000
-ENV PORT 3000
-
+# Expose the port and set the default command
+EXPOSE 3000
 CMD ["npm", "start"]
