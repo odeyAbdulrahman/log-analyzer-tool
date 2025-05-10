@@ -31,12 +31,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'pnpm'
+          cache: 'pnpm'  # Uses pnpm-lock.yaml for caching
           cache-dependency-path: pnpm-lock.yaml
 
       # Install dependencies
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
 
       # Build the Next.js app
       - name: Build Next.js app
@@ -57,8 +59,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' }}
+          push: ${{ github.ref == 'refs/heads/main' && true || false }}
           tags: ${{ env.NEXT_IMAGE_NAME }}:latest
-          platforms: linux/amd64
-          build-args: |
-            NEXT_PUBLIC_APP_VERSION=1.0.0
+          platforms: linux/amd64,linux/arm64
